@@ -5,3 +5,6 @@
 .DS_Store
 .env
 appsettings.Development.json
+
+bin/
+obj/
