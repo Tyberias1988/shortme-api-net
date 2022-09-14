@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+
+  timescale:
+    image: postgres:14
+    container_name: short_me_postgres
+    environment:
+      POSTGRES_USER: jkdv
+      POSTGRES_PASSWORD: jkdv
+      POSTGRES_DB: shortme
+      TZ: UTC
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  db-data:
+    driver: "local"
