@@ -30,7 +30,7 @@ public class ShortLinkService : IShortLinkService
     {
         _applicationDbContext.ShortLinks.Add(newShortLink);
         _applicationDbContext.SaveChanges();
-
+        
         return newShortLink;
     }
 }
