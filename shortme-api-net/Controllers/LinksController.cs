@@ -1,4 +1,9 @@
+using System;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using shortid;
+using shortid.Configuration;
 using shortme_api_net.Models;
 using shortme_api_net.Services;
 
@@ -23,4 +28,66 @@ public class LinksController : ControllerBase
         return links;
     }
 
+    [HttpGet]
+    [Route("{longUrl}")]
+    public async Task<List<ShortLink>> ShortenUrl(string longUrl)
+    {
+        List<ShortLink> linkList = new();
+
+        bool result = IsUrlValid(longUrl);
+
+        if (!result)
+        {
+            return linkList;
+        }
+
+        string longUrlForCreation = CheckForURLScheme(longUrl);
+
+        var shortenedUrlCollection = await _shortLinkService.GetAllShortLinks();
+
+        foreach (var Item in shortenedUrlCollection)
+        {
+            if (Item.OriginalUrl.Contains(longUrl))
+            {
+                linkList.Add(Item);
+                return linkList;
+            }
+        }
+
+        var options = new GenerationOptions(useNumbers: true, useSpecialCharacters: false, length: 8);
+        var shortCode = ShortId.Generate(options);
+        DateTime now = DateTime.Now;
+        ShortLink shortenedUrl = new ShortLink
+        {
+            Id = (shortenedUrlCollection.Count + 1),
+            Code = shortCode,
+            OriginalUrl = longUrlForCreation,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        _shortLinkService.Create(shortenedUrl);
+
+        linkList.Add(shortenedUrl);
+
+        return linkList;
+    }
+
+    private bool IsUrlValid(string url)
+    {
+        string regExPattern = @"^(http|https|)\://|[a-zA-Z0-9\-\.]+\.[a-zA-Z](:[a-zA-Z0-9]*)?/?([a-zA-Z0-9\-\._\?\,\'/\\\+&amp;%\$#\=~])*[^\.\,\)\(\s]$";
+        Regex reg = new Regex(regExPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        return reg.IsMatch(url);
+    }
+
+    private string CheckForURLScheme(string url)
+    {
+        if (!Regex.IsMatch(url, @"^https|http?:\/\/", RegexOptions.IgnoreCase))
+        {
+            return url = "http://" + url;
+        }
+
+        return url;
+    }
 }
