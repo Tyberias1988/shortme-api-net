@@ -85,4 +85,22 @@ public class LinksController : ControllerBase
 
         return url;
     }
+
+    [HttpGet("url/{shortID}")]
+    public async Task<RedirectResult> DoRedirectByShortID(string shortID)
+    {
+        string orgURL = "";
+
+        var shortenedUrlCollection = await _shortLinkService.GetAllShortLinks();
+
+        foreach (var Item in shortenedUrlCollection)
+        {
+            if (Item.Code.Contains(shortID))
+            {
+               orgURL = Item.OriginalUrl;
+            }
+        }
+
+        return Redirect(orgURL);
+    }
 }
