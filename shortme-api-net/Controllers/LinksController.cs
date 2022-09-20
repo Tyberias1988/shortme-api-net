@@ -86,7 +86,7 @@ public class LinksController : ControllerBase
         return url;
     }
 
-    [HttpGet("url/{shortID}")]
+    [HttpGet("url")]
     public async Task<RedirectResult> DoRedirectByShortID(string shortID)
     {
         string orgURL = "";
