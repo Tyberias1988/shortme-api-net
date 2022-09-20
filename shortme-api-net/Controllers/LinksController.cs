@@ -30,7 +30,7 @@ public class LinksController : ControllerBase
 
     [HttpGet]
     [Route("{longUrl}")]
-    public async Task<List<ShortLink>> ShortenUrl(string longUrl)
+    public async Task<RedirectResult> ShortenUrl(string longUrl)
     {
         List<ShortLink> linkList = new();
 
@@ -38,7 +38,7 @@ public class LinksController : ControllerBase
 
         if (!result)
         {
-            return linkList;
+            return null;
         }
 
         string longUrlForCreation = CheckForURLScheme(longUrl);
@@ -50,7 +50,7 @@ public class LinksController : ControllerBase
             if (Item.OriginalUrl.Contains(longUrl))
             {
                 linkList.Add(Item);
-                return linkList;
+                return Redirect(longUrlForCreation);
             }
         }
 
@@ -70,7 +70,7 @@ public class LinksController : ControllerBase
 
         linkList.Add(shortenedUrl);
 
-        return linkList;
+        return Redirect(longUrlForCreation);
     }
 
     private bool IsUrlValid(string url)
