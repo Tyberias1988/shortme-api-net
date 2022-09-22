@@ -25,7 +25,6 @@ public class ShortLinkService : IShortLinkService
 
     public async Task<List<ShortLink>> GetAllShortLinks()
     {
-        //var links = await _applicationDbContext.ShortLinks.Where(s => s.CreatedAt > DateTime.Now).ToListAsync();
         var links = await _applicationDbContext.ShortLinks.ToListAsync();
         return links;
     }

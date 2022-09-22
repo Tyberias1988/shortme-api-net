@@ -27,10 +27,16 @@ public class LinksController : ControllerBase
         return links;
     }
 
-    [HttpGet("url")]
-    public async Task<RedirectResult> DoRedirectByShortID(string shortID)
+    [HttpGet]
+    [Route("~/{shortID}")]
+    public async Task<IActionResult> DoRedirectByShortID(string shortID)
     {
         var shortenedUrlCollection = await _shortLinkService.GetSingleLink(shortID);
+
+        if(shortenedUrlCollection.Count == 0)
+        {
+            return NotFound();
+        }
 
         string orgURL = shortenedUrlCollection[0].OriginalUrl;
 
@@ -38,7 +44,6 @@ public class LinksController : ControllerBase
     }
 
     [HttpPut("{longUrl}")]
-    //[Route]
     public async Task<List<ShortLink>> ShortenUrl(string longUrl)
     {
         List<ShortLink> sLink = new();
