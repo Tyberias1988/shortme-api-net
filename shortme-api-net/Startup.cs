@@ -100,7 +100,7 @@ public class Startup
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Employee API V1");
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "shortme-api-net");
         });
 
         app.UseEndpoints(endpoints =>
