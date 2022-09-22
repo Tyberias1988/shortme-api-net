@@ -2,10 +2,9 @@ using System;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using shortid;
-using shortid.Configuration;
 using shortme_api_net.Models;
 using shortme_api_net.Services;
+using shortme_api_net.Helpers;
 
 namespace shortme_api_net.Controllers;
 
@@ -28,8 +27,18 @@ public class LinksController : ControllerBase
         return links;
     }
 
-    [HttpGet]
-    [Route("{longUrl}")]
+    [HttpGet("url")]
+    public async Task<RedirectResult> DoRedirectByShortID(string shortID)
+    {
+        var shortenedUrlCollection = await _shortLinkService.GetSingleLink(shortID);
+
+        string orgURL = shortenedUrlCollection[0].OriginalUrl;
+
+        return Redirect(orgURL);
+    }
+
+    [HttpPut("{longUrl}")]
+    //[Route]
     public async Task<List<ShortLink>> ShortenUrl(string longUrl)
     {
         List<ShortLink> sLink = new();
@@ -43,32 +52,38 @@ public class LinksController : ControllerBase
 
         string longUrlForCreation = CheckForURLScheme(longUrl);
 
-        var shortenedUrlCollection = await _shortLinkService.GetAllShortLinks();
+        bool linkIsInDB = await _shortLinkService.LinkInDB(longUrlForCreation);
 
-        foreach (var Item in shortenedUrlCollection)
+        if (linkIsInDB)
         {
-            if (Item.OriginalUrl.Contains(longUrl))
-            {
-                sLink.Add(Item);
-                return sLink;
-            }
+            var link = await _shortLinkService.GetSingleLink(longUrlForCreation);
+
+            return link;
         }
 
-        var options = new GenerationOptions(useNumbers: true, useSpecialCharacters: false, length: 8);
-        var shortCode = ShortId.Generate(options);
+        ShortLink shortenedUrl = CreateLinkObject(longUrlForCreation);
+
+        sLink.Add(shortenedUrl);
+        _shortLinkService.Create(shortenedUrl);
+
+        return sLink;
+    }
+
+    private ShortLink CreateLinkObject(string longUrlForCreation)
+    {
+        string shortCode = RandomStringGenerator.RandomString(8);
         DateTime now = DateTime.Now;
+        int count = _shortLinkService.GetCountFromDB();
         ShortLink shortenedUrl = new ShortLink
         {
-            Id = (shortenedUrlCollection.Count + 1),
+            Id = (count + 1),
             Code = shortCode,
             OriginalUrl = longUrlForCreation,
             CreatedAt = now,
             UpdatedAt = now
         };
-        sLink.Add(shortenedUrl);
-        _shortLinkService.Create(shortenedUrl);
 
-        return sLink;
+        return shortenedUrl;
     }
 
     private bool IsUrlValid(string url)
@@ -87,23 +102,5 @@ public class LinksController : ControllerBase
         }
 
         return url;
-    }
-
-    [HttpGet("url")]
-    public async Task<RedirectResult> DoRedirectByShortID(string shortID)
-    {
-        string orgURL = "";
-
-        var shortenedUrlCollection = await _shortLinkService.GetAllShortLinks();
-
-        foreach (var Item in shortenedUrlCollection)
-        {
-            if (Item.Code.Contains(shortID))
-            {
-               orgURL = Item.OriginalUrl;
-            }
-        }
-
-        return Redirect(orgURL);
     }
 }
