@@ -40,7 +40,7 @@ public class LinksController : ControllerBase
 
         string orgURL = shortenedUrlCollection[0].OriginalUrl;
 
-        return Redirect(orgURL);
+        return Ok(orgURL);
     }
 
     [HttpPut("{longUrl}")]
