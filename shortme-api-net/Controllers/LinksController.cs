@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using shortme_api_net.Models;
 using shortme_api_net.Services;
 using shortme_api_net.Helpers;
+using System.Net;
 
 namespace shortme_api_net.Controllers;
 
@@ -23,24 +24,32 @@ public class LinksController : ControllerBase
     public async Task<List<ShortLink>> GetAllShortLinks()
     {
         var links = await _shortLinkService.GetAllShortLinks();
-
         return links;
     }
 
-    [HttpGet]
+    [HttpPost]
     [Route("~/{shortID}")]
     public async Task<IActionResult> DoRedirectByShortID(string shortID)
     {
-        var shortenedUrlCollection = await _shortLinkService.GetSingleLink(shortID);
-
-        if(shortenedUrlCollection.Count == 0)
+        try
         {
-            return NotFound();
+            var shortenedUrlCollection = await _shortLinkService.GetSingleLink(shortID);
+
+            if (shortenedUrlCollection.Count == 0)
+            {
+                return NotFound();
+            }
+
+            string orgURL = shortenedUrlCollection[0].OriginalUrl;
+
+            RedirectResult result = RedirectPermanent(orgURL);
+
+            return result;
         }
-
-        string orgURL = shortenedUrlCollection[0].OriginalUrl;
-
-        return Ok(orgURL);
+        catch(Exception ex)
+        {
+            return BadRequest(ex);
+        }
     }
 
     [HttpPut("{longUrl}")]

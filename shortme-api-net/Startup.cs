@@ -40,7 +40,6 @@ public class Startup
                     .WithOrigins("http://localhost:3000")
                     .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowAnyHeader()
                     .AllowCredentials();
             });
         });
